@@ -2,7 +2,6 @@
 
 public class BackupServer extends ServerProcess {
 
-    
     private boolean isPromoted = false; // This tells us if the backup has turned into a primary server yet
 
     
@@ -32,6 +31,17 @@ public class BackupServer extends ServerProcess {
     public void promote() {  // If the primary goes down, backup promotes itself to primary
         isPromoted = true;
         System.out.println("BackupServer " + id + " promoted to primary!");
+    }
+
+    //handle client requests only if promoted
+    public String handleRequest(String request) {
+        if (isPromoted) {
+            System.out.println("BackupServer " + id + " (now primary) handling request: " + request);
+            return "Response from promoted BackupServer " + id + ": " + request;
+        } else {
+            System.out.println("BackupServer " + id + " ignoring request (still backup).");
+            return null; // or some message that it’s not primary
+        }
     }
 }
 

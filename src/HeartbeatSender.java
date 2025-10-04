@@ -2,22 +2,21 @@
 
 public class HeartbeatSender implements Runnable {
     private final ServerProcess server; // the server that owns this heartbeat
-
+    private Monitor monitor;
    
-    public HeartbeatSender(ServerProcess server) {  // Constructor: link this heartbeat to a specific server
+    public HeartbeatSender(ServerProcess server, Monitor monitor) {  // Constructor: link this heartbeat to a specific server
+        this.monitor = monitor;
         this.server = server;
     }
 
     @Override
+    //Instead if just printing messages, actually update the monitor
     public void run() {
         try {
             
-            while (true) { // Loop forever (until interrupted)
-               
-                server.sendHeartbeat();  // Tell the monitor "I’m alive"
-
-               
-                Thread.sleep(server.heartbeatIntervalMs); // Wait for the heartbeat interval before sending again
+            while (server.running) { // Loop forever (until interrupted)
+                monitor.receiveHeartbeat(server.id); //update monitor
+                Thread.sleep(2000); //send heartbeat every 2s
             }
         } catch (InterruptedException e) {
            

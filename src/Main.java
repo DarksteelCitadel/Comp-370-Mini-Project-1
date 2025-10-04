@@ -9,8 +9,8 @@ public class Main {
         monitor.registerServer(backup);
 
         // Start heartbeats
-        new Thread(new HeartbeatSender(primary)).start();
-        new Thread(new HeartbeatSender(backup)).start();
+        new Thread(new HeartbeatSender(primary, monitor)).start();
+        new Thread(new HeartbeatSender(backup, monitor)).start();
 
         // Start servers
         new Thread(() -> {
@@ -24,5 +24,16 @@ public class Main {
         // Test client connects to primary server's port
         Client client = new Client("localhost", 6000);
         client.sendRequest("Hello Server!");
+
+        // --- Manual monitor check ---
+            Thread.sleep(3000);   // give time for servers to send a couple heart beats
+
+            // Simulate primary died
+            primary.running = false; // stop primary from sending heartbeats
+            System.out.println("Simulated primary crash...");
+
+            Thread.sleep(6000);   // wait longer than timeout (5s)
+            monitor.detectFailure(); // should trigger failover to backup
+        // ----------------------------
     }
 }

@@ -33,6 +33,12 @@ public class ConnectionHandler implements Runnable {
             if (server instanceof PrimaryServer) { // If the server is the PrimaryServer, it can handle requests
                 String response = ((PrimaryServer) server).handleRequest(request);
                 out.println(response); // send response back to client
+            } else if (server instanceof BackupServer) {
+                BackupServer backup = (BackupServer) server;
+                String response = backup.handleRequest(request);
+                if(response != null) {
+                    out.println(response);
+                }
             } else {
                
                 out.println("Backup server cannot process requests.");  // Backup servers don’t process requests 
