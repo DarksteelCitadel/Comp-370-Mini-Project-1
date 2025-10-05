@@ -1,8 +1,16 @@
-
-
 public class BackupServer extends ServerProcess {
 
-    private boolean isPromoted = false; // This tells us if the backup has turned into a primary server yet
+    
+    public boolean isPromoted = false; // This tells us if the backup has turned into a primary server yet
+    // Allow promoted backup to handle client requests
+    public String handleRequest(String request) {
+        if (isPromoted) {
+            System.out.println("BackupServer " + id + " (PROMOTED) handling request: " + request);
+            return "Response from BackupServer " + id + " (PROMOTED): " + request;
+        } else {
+            return "Backup server cannot process requests.";
+        }
+    }
 
     
     public BackupServer(int id, int port) { // When we make a BackupServer, we give it an id and a port number
@@ -29,19 +37,9 @@ public class BackupServer extends ServerProcess {
 
    
     public void promote() {  // If the primary goes down, backup promotes itself to primary
+        
         isPromoted = true;
         System.out.println("BackupServer " + id + " promoted to primary!");
-    }
-
-    //handle client requests only if promoted
-    public String handleRequest(String request) {
-        if (isPromoted) {
-            System.out.println("BackupServer " + id + " (now primary) handling request: " + request);
-            return "Response from promoted BackupServer " + id + ": " + request;
-        } else {
-            System.out.println("BackupServer " + id + " ignoring request (still backup).");
-            return null; // or some message that it’s not primary
-        }
     }
 }
 

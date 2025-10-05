@@ -1,5 +1,3 @@
-
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -10,6 +8,8 @@ import java.net.Socket;
 public class Client {
     private String host; // the server's address
     private int port;    // the port number the server is listening on
+
+    
 
     
     public Client(String host, int port) { // When we make a Client, we give it a host (IP) and a port
@@ -34,7 +34,7 @@ public class Client {
 
             
             String response = in.readLine(); // Wait and read the response from the server
-            System.out.println("Client received: " + response);
+            System.out.println("Client received: " + response + "\n"); // Print the server's response
 
         } catch (IOException e) {
             

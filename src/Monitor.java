@@ -1,80 +1,130 @@
-
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.util.*;
 
 public class Monitor {
-    private List<ServerProcess> servers = new ArrayList<>(); // list of all servers being monitored
-    private Map<Integer, Long> serverHeartbeats = new HashMap<>(); //Hash map to track last time heartbeat arrived from each server (Int:id, Long:timestamp)
-    private int timeoutThresholdMs = 5000; // how long to wait before deciding a server failed
-    private int currentPrimaryId = 1; //assume server 1 starts as primary
-    
-    public void registerServer(ServerProcess server) { // Add a server to monitor
+    private List<ServerProcess> servers = new ArrayList<>();
+    private int timeoutThresholdMs = 5000;
+    private Map<Integer, Long> heartbeatTimestamps = new HashMap<>();
+    private Integer currentPrimaryId = null;
+    private boolean promotedMessagePrinted = false;
+
+    public void registerServer(ServerProcess server) {
         servers.add(server);
-        serverHeartbeats.put(server.id, System.currentTimeMillis()); //initialize heartbeat tracking
-        System.out.println("Monitor registered server " + server.id);
-    }
-
-    //method for servers to report a heartbeat to monitor
-    public void receiveHeartbeat(int serverId) {
-        serverHeartbeats.put(serverId, System.currentTimeMillis());
-        System.out.println("Monitor received heartbeat from server " + serverId);
-    }
-
- 
-    public void detectFailure() {    // Check all servers to see if they are running
-        long now = System.currentTimeMillis();
-        Long lastHeartbeat = serverHeartbeats.get(currentPrimaryId);
-
-        //if last heartbeat was longer than 5 seconds ago, promote backup server
-        if(lastHeartbeat == null || (now - lastHeartbeat) > timeoutThresholdMs) {
-            System.out.println("Monitor detected failure of primary " + currentPrimaryId);
-            triggerFailover();
+        Logger.log("Monitor registered server " + server.id);
+        heartbeatTimestamps.put(server.id, System.currentTimeMillis());
+        if (server instanceof PrimaryServer && currentPrimaryId == null) {
+            currentPrimaryId = server.id;
         }
     }
 
-   //UPDATED: added choosing server of lowest id, then promoting it to primary
-    public void triggerFailover() {  // Promote a backup server to primary if a failure is detected
-        long now = System.currentTimeMillis();
-        ServerProcess bestCandidate = null;
-
-        for (ServerProcess server : servers) {
-            /*
-            if (server instanceof BackupServer) {
-                ((BackupServer) server).promote(); // promote backup server
-                System.out.println("Monitor triggered failover. Server " + server.id + " is now primary.");
-                break; // only promote the first backup found
+    public void startMonitorService(int monitorPort) {
+        new Thread(() -> {
+            try (ServerSocket serverSocket = new ServerSocket(monitorPort)) {
+                Logger.log("Monitor service started on port " + monitorPort);
+                while (true) {
+                    Socket clientSocket = serverSocket.accept();
+                    BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                    PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+                    String request = in.readLine();
+                    if ("GET_PRIMARY".equals(request)) {
+                        ServerProcess primary = null;
+                        for (ServerProcess server : servers) {
+                            if (server.id == currentPrimaryId) primary = server;
+                        }
+                        if (primary != null) {
+                            out.println("localhost:" + primary.port);
+                        } else {
+                            out.println("NONE");
+                        }
+                    }
+                    clientSocket.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            */
-            if(server.id == currentPrimaryId) continue; //skip current primary
+        }).start();
+    }
 
-            //check if server is alive
-            Long lastHeartbeat = serverHeartbeats.get(server.id);
-            if (lastHeartbeat == null) continue;
+    public synchronized void recordHeartbeat(int serverId) {
+        heartbeatTimestamps.put(serverId, System.currentTimeMillis());
+        Logger.log("Monitor received heartbeat from server " + serverId);
+    }
 
-            //if sever of lower id is found, swap
-            if((now - lastHeartbeat) < timeoutThresholdMs) {
-                if (bestCandidate == null || server.id < bestCandidate.id) {
-                    bestCandidate = server;
+    public void detectFailure() {
+        if (currentPrimaryId != null) {
+            Long lastPrimaryHeartbeat = heartbeatTimestamps.get(currentPrimaryId);
+            long now = System.currentTimeMillis();
+            ServerProcess primary = null;
+            for (ServerProcess server : servers) if (server.id == currentPrimaryId) primary = server;
+
+            boolean isBackupPromoted = (primary instanceof BackupServer) && ((BackupServer) primary).isPromoted;
+            if (isBackupPromoted) {
+                if (!promotedMessagePrinted) {
+                    Logger.log("Backup server " + currentPrimaryId + " is now acting as primary.");
+                    promotedMessagePrinted = true;
+                }
+                return;
+            }
+
+            if (lastPrimaryHeartbeat == null || now - lastPrimaryHeartbeat > timeoutThresholdMs) {
+                logEvent("Primary server " + currentPrimaryId + " failed. Initiating failover.");
+                triggerFailover();
+            }
+        }
+    }
+
+    public void triggerFailover() {
+        long now = System.currentTimeMillis();
+        BackupServer selectedBackup = null;
+        for (ServerProcess server : servers) {
+            if (server instanceof BackupServer) {
+                Long ts = heartbeatTimestamps.get(server.id);
+                if (ts != null && now - ts <= timeoutThresholdMs && !((BackupServer) server).isPromoted) {
+                    BackupServer backup = (BackupServer) server;
+                    if (selectedBackup == null || backup.id < selectedBackup.id) {
+                        selectedBackup = backup;
+                    }
                 }
             }
+        }
 
-            //promote backup server to primary after finding alive server of lowest id
-            if (bestCandidate != null && bestCandidate instanceof BackupServer) {
-                ((BackupServer) bestCandidate).promote();
-                currentPrimaryId = bestCandidate.id;
-                System.out.println("Monitor promoted server " + bestCandidate.id + " to PRIMARY.");
-            } else {
-                System.out.println("No backup servers available to promote!");
-            }
+        if (selectedBackup != null) {
+            selectedBackup.promote();
+            currentPrimaryId = selectedBackup.id;
+            promotedMessagePrinted = false;
+            logEvent("Monitor triggered failover. Server " + selectedBackup.id + " is now primary.");
+            System.out.println("[VISUALIZE] Backup server " + selectedBackup.id + " is now handling client requests on port " + selectedBackup.port);
+
+            final BackupServer backupToPromote = selectedBackup;
+            new Thread(() -> {
+                try {
+                    Thread.sleep(2000);
+                    Client client = new Client("localhost", backupToPromote.port);
+                    client.sendRequest("Hello Backup (now Primary)!");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }).start();
+        } else {
+            logEvent("No alive backup servers available for failover.");
         }
     }
 
+    public void logEvent(String event) {
+        Logger.log("Monitor log: " + event);
+    }
 
-    public void logEvent(String event) {     // Log any important events
-        System.out.println("Monitor log: " + event);
+    public void printStatus() {
+        Logger.log("=== Server Status ===");
+        for (ServerProcess server : servers) {
+            String status = server.running ? "RUNNING" : "STOPPED";
+            if (server instanceof BackupServer && ((BackupServer) server).isPromoted) status += " (PROMOTED)";
+            Logger.log("Server " + server.id + ": " + status);
+        }
     }
 }
+
