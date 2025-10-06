@@ -1,10 +1,17 @@
 #!/bin/bash
-# Simulate heartbeat delay
-# This assumes your BackupServer or Monitor code supports a heartbeat delay flag
-# If not, this just prints a message
-echo "Simulating heartbeat delay..."
-# Example: send a signal to your monitor or backup to delay heartbeats
-# pkill -STOP -f "Main backup1"  # temporarily stop process
+# Simulate a delay in heartbeat handling
+
+# This pauses the primary server’s heartbeat sending for 5 seconds
+# Adjust "Main primary" to the process you want to pause
+PID=$(pgrep -f "Main primary")
+
+if [ -z "$PID" ]; then
+  echo "Primary server is not running."
+  exit 1
+fi
+
+echo "Pausing primary server heartbeat for 5 seconds..."
+kill -STOP $PID
 sleep 5
-# pkill -CONT -f "Main backup1"  # resume process
-echo "Heartbeat delay triggered."
+kill -CONT $PID
+echo "Heartbeat resumed."
