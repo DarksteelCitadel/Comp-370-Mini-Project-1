@@ -31,24 +31,38 @@ public class Monitor {
                     BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                     PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
                     String request = in.readLine();
-                    if ("GET_PRIMARY".equals(request)) {
-                        ServerProcess primary = null;
+        
+                    if (request == null) continue;
+        
+                    if (request.startsWith("HEARTBEAT")) {
+                        int serverId = Integer.parseInt(request.split(" ")[1]);
+                        recordHeartbeat(serverId);
+                    } else if ("STATUS".equalsIgnoreCase(request)) {
+                        StringBuilder sb = new StringBuilder();
                         for (ServerProcess server : servers) {
-                            if (server.id == currentPrimaryId) primary = server;
+                            String status = server.running ? "RUNNING" : "STOPPED";
+                            if (server instanceof BackupServer && ((BackupServer) server).isPromoted) {
+                                status += " (PROMOTED)";
+                            }
+                            sb.append("Server ").append(server.id).append(": ").append(status).append("\n");
                         }
-                        if (primary != null) {
-                            out.println("localhost:" + primary.port);
-                        } else {
-                            out.println("NONE");
-                        }
+                        out.println(sb.toString());
+                    } else if ("FAILOVER".equalsIgnoreCase(request)) {
+                        triggerFailover();
+                        out.println("Failover attempted.");
+                    } else if ("GET_PRIMARY".equalsIgnoreCase(request)) {
+                        ServerProcess primary = null;
+                        for (ServerProcess server : servers) if (server.id == currentPrimaryId) primary = server;
+                        out.println(primary != null ? "localhost:" + primary.port : "NONE");
                     }
+        
                     clientSocket.close();
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }).start();
-    }
+        }).start(); }
+        
 
     public synchronized void recordHeartbeat(int serverId) {
         heartbeatTimestamps.put(serverId, System.currentTimeMillis());
@@ -150,6 +164,9 @@ public class Monitor {
         }
     }
 }
+
+
+
 
 
 
