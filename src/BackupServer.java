@@ -3,20 +3,23 @@ import java.net.*;
 
 public class BackupServer extends ServerProcess {
 
-    public boolean isPromoted = false;
+    public boolean isPromoted = false; // True if backup has been promoted to primary
     private ServerSocket serverSocket;
 
     public BackupServer(int id, int port) {
-        super(id, port); // call parent constructor
+        super(id, port); // Call parent constructor
     }
+
+    // Handles requests if promoted
     public String handleRequest(String request) {
         Logger.log("BackupServer " + id + " (PROMOTED) handling request: " + request);
         return "Response from BackupServer " + id + " (PROMOTED): " + request;
     }
+
     @Override
     public void start() {
         try {
-            // Bind socket early so clients can connect
+            // Bind socket early so monitor and clients can connect
             serverSocket = new ServerSocket(port);
             System.out.println("BackupServer " + id + " started on port " + port + " (monitoring only).");
 
@@ -26,9 +29,9 @@ public class BackupServer extends ServerProcess {
                     while (true) {
                         Socket client = serverSocket.accept();
                         if (isPromoted) {
-                            handleClient(client);
+                            handleClient(client); // Handle client if promoted
                         } else {
-                            // Optionally: reject connection until promoted
+                            // Reject requests until promoted
                             PrintWriter out = new PrintWriter(client.getOutputStream(), true);
                             out.println("Backup server not ready yet.");
                             client.close();
@@ -39,7 +42,7 @@ public class BackupServer extends ServerProcess {
                 }
             }).start();
 
-            // Heartbeat thread
+            // Heartbeat thread to monitor server health
             new Thread(() -> {
                 try {
                     while (true) {
@@ -59,11 +62,13 @@ public class BackupServer extends ServerProcess {
         }
     }
 
+    // Promote backup server to primary
     public void promote() {
         isPromoted = true;
         System.out.println("BackupServer " + id + " promoted to primary!");
     }
 
+    // Handle client request after promotion
     private void handleClient(Socket client) {
         try (BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
              PrintWriter out = new PrintWriter(client.getOutputStream(), true)) {
@@ -77,15 +82,12 @@ public class BackupServer extends ServerProcess {
         }
     }
 
+    // Heartbeat methods are optional override
     @Override
-    public void sendHeartbeat() {
-        // optional override
-    }
-
+    public void sendHeartbeat() {}
     @Override
-    public void receiveHeartbeat() {
-        // optional override
-    }
+    public void receiveHeartbeat() {}
 }
+
 
 
