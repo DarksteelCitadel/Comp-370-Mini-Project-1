@@ -1,4 +1,4 @@
-/*
+
 # Server Redundancy Management System Simulation
 
 This project simulates a **primary-backup redundancy system** in Java, with a monitor process that detects failures, promotes backups, and logs events.
