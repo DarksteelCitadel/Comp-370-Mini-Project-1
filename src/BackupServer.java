@@ -1,92 +1,90 @@
-import java.io.PrintWriter;
-import java.net.Socket;
+import java.io.*;
+import java.net.*;
 
 public class BackupServer extends ServerProcess {
 
-    public boolean isPromoted = false; // This tells us if the backup has turned into a primary server yet
+    public boolean isPromoted = false;
+    private ServerSocket serverSocket;
 
-    // Allow promoted backup to handle client requests
+    public BackupServer(int id, int port) {
+        super(id, port); // call parent constructor
+    }
     public String handleRequest(String request) {
-        if (isPromoted) {
-            System.out.println("BackupServer " + id + " (PROMOTED) handling request: " + request);
-            return "Response from BackupServer " + id + " (PROMOTED): " + request;
-        } else {
-            return "Backup server cannot process requests.";
+        Logger.log("BackupServer " + id + " (PROMOTED) handling request: " + request);
+        return "Response from BackupServer " + id + " (PROMOTED): " + request;
+    }
+    @Override
+    public void start() {
+        try {
+            // Bind socket early so clients can connect
+            serverSocket = new ServerSocket(port);
+            System.out.println("BackupServer " + id + " started on port " + port + " (monitoring only).");
+
+            // Thread to accept client connections
+            new Thread(() -> {
+                try {
+                    while (true) {
+                        Socket client = serverSocket.accept();
+                        if (isPromoted) {
+                            handleClient(client);
+                        } else {
+                            // Optionally: reject connection until promoted
+                            PrintWriter out = new PrintWriter(client.getOutputStream(), true);
+                            out.println("Backup server not ready yet.");
+                            client.close();
+                        }
+                    }
+                } catch (IOException e) {
+                    System.out.println("BackupServer " + id + " stopped accepting connections.");
+                }
+            }).start();
+
+            // Heartbeat thread
+            new Thread(() -> {
+                try {
+                    while (true) {
+                        try (Socket monitorSocket = new Socket("localhost", 7100);
+                             PrintWriter out = new PrintWriter(monitorSocket.getOutputStream(), true)) {
+                            out.println("HEARTBEAT " + id);
+                        } catch (Exception e) {
+                            System.out.println("BackupServer " + id + " failed to send heartbeat, retrying...");
+                        }
+                        Thread.sleep(1000);
+                    }
+                } catch (InterruptedException ignored) {}
+            }).start();
+
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
-    public BackupServer(int id, int port) { // When we make a BackupServer, we give it an id and a port number
-        super(id, port);   // Call the parent (ServerProcess) to set these values
-    }
-
-    public void start() {
-        System.out.println("BackupServer " + id + " started on port " + port);
-
-        // ---------------------------
-        // Added: connect to Monitor
-        // ---------------------------
-        new Thread(() -> {
-            try {
-                Socket monitorSocket = new Socket("localhost", 7100); // Monitor port
-                PrintWriter out = new PrintWriter(monitorSocket.getOutputStream(), true);
-
-                while (true) {
-                    // Send heartbeat every 1 second
-                    out.println("HEARTBEAT " + id);
-                    Thread.sleep(1000);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }).start();
-        // ---------------------------
-    }
-
-    public void stop() {
-        System.out.println("BackupServer " + id + " stopped.");
-        // Your server stop logic here...
-    }
-
-    @Override
-    public void sendHeartbeat() {    // This is the heartbeat the backup sends out
-        System.out.println("BackupServer " + id + " sending heartbeat.");
-    }
-
-    @Override
-    public void receiveHeartbeat() {    // This is what happens when the backup receives a heartbeat
-        System.out.println("BackupServer " + id + " received heartbeat.");
-    }
-
-    public void monitorPrimary() {  // Backup keeps an eye on the primary to make sure it’s alive
-        System.out.println("BackupServer " + id + " monitoring primary...");
-    }
-
-    public void promote() {  // If the primary goes down, backup promotes itself to primary
+    public void promote() {
         isPromoted = true;
         System.out.println("BackupServer " + id + " promoted to primary!");
     }
 
-    public static void main(String[] args) {
-        int id = 2;
-        int port = 6001;
-        if (args.length >= 2) {
-            try {
-                id = Integer.parseInt(args[0]);
-                port = Integer.parseInt(args[1]);
-            } catch (NumberFormatException e) {
-                System.out.println("Invalid arguments, using defaults id=2 port=6001");
-            }
-        }
-        BackupServer server = new BackupServer(id, port);
-        try {
-            server.start();
-            // Keep running
-            while (true) {
-                Thread.sleep(1000);
-            }
-        } catch (Exception e) {
+    private void handleClient(Socket client) {
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+             PrintWriter out = new PrintWriter(client.getOutputStream(), true)) {
+
+            String request = in.readLine();
+            System.out.println("BackupServer " + id + " (PROMOTED) handling request: " + request);
+            out.println("Response from BackupServer " + id + " (PROMOTED): " + request);
+
+        } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void sendHeartbeat() {
+        // optional override
+    }
+
+    @Override
+    public void receiveHeartbeat() {
+        // optional override
     }
 }
 
