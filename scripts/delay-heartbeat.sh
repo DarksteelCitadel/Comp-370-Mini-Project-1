@@ -2,7 +2,7 @@
 # delay-heartbeat.sh - simulate delayed heartbeats for the primary server
 
 # Find the PID of the running PrimaryServer
-PRIMARY_PID=$(jps | grep PrimaryServer | awk '{print $1}')
+PRIMARY_PID=$(jps -l | grep -i PrimaryServer | awk '{print $1}')
 
 if [ -z "$PRIMARY_PID" ]; then
     echo "Primary server is not running."
