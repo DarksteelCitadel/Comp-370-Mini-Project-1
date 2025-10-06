@@ -5,15 +5,15 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 public class Client {
-    private String host;
-    private int port;
+    private String host; // Server host
+    private int port;    // Server port
 
     public Client(String host, int port) {
         this.host = host;
         this.port = port;
     }
 
-    // Now returns the server response or throws an IOException
+    // Send request to server and return response
     public String sendRequest(String request) throws IOException {
         try (
             Socket socket = new Socket(host, port);
