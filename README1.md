@@ -73,10 +73,9 @@ cd ~/Comp-370-Mini-Project-1
 
 ## Scripts
 
-1. **run.sh** – compiles and runs all components:
 
 ```bash
-./scripts/run.sh
+./scripts/run.sh - # compile and run all components
 
 kill-primary.sh – kills the current primary server:
 ./scripts/kill-primary.sh
