@@ -79,6 +79,58 @@ cd ~/Comp-370-Mini-Project-1
 ```
 This kills the current primary server. 
 
+## Testing Scenarios 
+
+After running ./scripts/run.sh, the system components start in the following order:
+Monitor (port 7100)
+PrimaryServer (Server 1, port 6000)
+BackupServer 2 (port 6001)
+BackupServer 3 (port 6002)
+AdminInterface (CLI for commands)
+
+You can then test different failure and recovery scenarios using separate terminal windows for each of these actions:
+
+1. Admin Interface Terminal:
+ ```bash
+java -cp out AdminInterface
+```
+Commands: status, failover, exit.
+
+3. Simulate Primary Crash:
+```bash
+./scripts/kill-primary.sh
+```
+Monitor detects the primary failure.
+BackupServer 2 (or 3) is promoted to primary automatically.
+Clients reconnect and continue sending requests successfully.
+
+3.Simulate Backup Crash:
+Stop a backup server manually or with kill command.
+Monitor continues receiving primary heartbeats.
+No failover occurs; primary continues serving clients normally.
+
+4.Simultaneous Failures:
+Stop both the primary and all backups.
+Monitor detects no alive backup servers and logs:
+```bash
+No alive backup servers available for failover.
+```
+System enters an unavailable state; clients retry connections unsuccessfully.
+
+5.Network Delay Simulation:
+```bash
+./scripts/delay-heartbeat.sh <backup-id>
+```
+Delays the heartbeat from the specified backup server (2 or 3).
+Monitor continues receiving heartbeats from the primary.
+No false failover is triggered.
+Clients still receive valid responses from the primary server.
+
+6. System Recovery:
+Restart stopped servers manually.
+Monitor re-registers the servers, and heartbeats resume.
+Clients can reconnect to the primary and continue sending requests successfully.
+
 ## Scripts
 
 
@@ -90,4 +142,5 @@ kill-primary.sh – kills the current primary server:
 
 delay-heartbeat.sh – delays heartbeat for a backup server:
 ./scripts/delay-heartbeat.sh
+
 
