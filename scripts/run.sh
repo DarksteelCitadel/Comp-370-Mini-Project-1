@@ -1,42 +1,31 @@
 #!/bin/bash
 
-# Make scripts executable
-chmod +x scripts/*.sh
-
 # Compile Java files
 echo "Compiling Java files..."
-javac -d out src/*.java
-if [ $? -ne 0 ]; then
-  echo "Compilation failed. Exiting."
-  exit 1
-fi
+javac src/*.java -d out
 
-# Function to open new Terminal tab and run command in current directory
-open_tab() {
-  local cmd="$1"
-  osascript <<EOF
-tell application "Terminal"
-  activate
-  tell application "System Events" to keystroke "t" using command down
-  delay 0.5
-  do script "cd '$(pwd)'; $cmd" in front window
-end tell
-EOF
-}
+mkdir -p out
 
-echo "Starting Monitor..."
-open_tab "java -cp out Monitor"
+PROJECT_DIR="/Users/sahijwaraich/Comp-370-Mini-Project-1"
 
-echo "Starting Primary Server..."
-open_tab "java -cp out PrimaryServer 1 6000"
+# Start Monitor
+echo "Starting Monitor on port 7100..."
+osascript -e "tell application \"Terminal\" to do script \"cd $PROJECT_DIR; java -cp out Monitor\""
 
-echo "Starting Backup Server 1..."
-open_tab "java -cp out BackupServer 2 6001"
+# Start Primary Server
+echo "Starting Primary Server (ID 1, port 6000)..."
+osascript -e "tell application \"Terminal\" to do script \"cd $PROJECT_DIR; java -cp out PrimaryServer 1 6000\""
 
-echo "Starting Backup Server 2..."
-open_tab "java -cp out BackupServer 3 6002"
+# Start Backup Server 2
+echo "Starting Backup Server (ID 2, port 6001)..."
+osascript -e "tell application \"Terminal\" to do script \"cd $PROJECT_DIR; java -cp out BackupServer 2 6001\""
 
+# Start Backup Server 3
+echo "Starting Backup Server (ID 3, port 6002)..."
+osascript -e "tell application \"Terminal\" to do script \"cd $PROJECT_DIR; java -cp out BackupServer 3 6002\""
+
+# Start Admin Interface
 echo "Starting Admin Interface..."
-open_tab "java -cp out AdminInterface"
+osascript -e "tell application \"Terminal\" to do script \"cd $PROJECT_DIR; java -cp out AdminInterface\""
 
 echo "All components started!"
