@@ -1,12 +1,12 @@
 #!/bin/bash
-# kill-primary.sh — terminate the primary server
 
-PID_FILE="scripts/.pids.primary"
+# Find the PID of PrimaryServer
+PRIMARY_PID=$(jps -l | grep PrimaryServer | awk '{print $1}')
 
-if [ -f "$PID_FILE" ]; then
-    PID=$(cat "$PID_FILE")
-    kill -9 $PID
-    echo "Primary server ($PID) killed."
+if [ -z "$PRIMARY_PID" ]; then
+  echo "Primary server PID not found."
 else
-    echo "Primary server PID not found."
+  echo "Killing PrimaryServer with PID $PRIMARY_PID..."
+  kill -9 $PRIMARY_PID
+  echo "PrimaryServer killed."
 fi
