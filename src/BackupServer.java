@@ -1,3 +1,6 @@
+import java.io.PrintWriter;
+import java.net.Socket;
+
 public class BackupServer extends ServerProcess {
 
     public boolean isPromoted = false; // This tells us if the backup has turned into a primary server yet
@@ -18,7 +21,25 @@ public class BackupServer extends ServerProcess {
 
     public void start() {
         System.out.println("BackupServer " + id + " started on port " + port);
-        // Your server start logic here...
+
+        // ---------------------------
+        // Added: connect to Monitor
+        // ---------------------------
+        new Thread(() -> {
+            try {
+                Socket monitorSocket = new Socket("localhost", 7100); // Monitor port
+                PrintWriter out = new PrintWriter(monitorSocket.getOutputStream(), true);
+
+                while (true) {
+                    // Send heartbeat every 1 second
+                    out.println("HEARTBEAT " + id);
+                    Thread.sleep(1000);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
+        // ---------------------------
     }
 
     public void stop() {
@@ -68,4 +89,5 @@ public class BackupServer extends ServerProcess {
         }
     }
 }
+
 
