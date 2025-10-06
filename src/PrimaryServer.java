@@ -1,5 +1,6 @@
 public class PrimaryServer extends ServerProcess {
 
+    // Constructor: initialize server with id and port
     public PrimaryServer(int id, int port) {
         super(id, port);
     }
@@ -22,9 +23,12 @@ public class PrimaryServer extends ServerProcess {
         return "Response from PrimaryServer " + id + ": " + request;
     }
 
+    // Main method to run PrimaryServer independently
     public static void main(String[] args) {
-        int id = 1;
-        int port = 6000;
+        int id = 1;           // default server id
+        int port = 6000;      // default port
+
+        // Parse command-line arguments if provided
         if (args.length >= 2) {
             try {
                 id = Integer.parseInt(args[0]);
@@ -33,10 +37,13 @@ public class PrimaryServer extends ServerProcess {
                 System.out.println("Invalid arguments, using defaults id=1 port=6000");
             }
         }
+
+        // Create and start the server
         PrimaryServer server = new PrimaryServer(id, port);
         try {
-            server.start();
-            // Keep running indefinitely
+            server.start(); // start server (from ServerProcess)
+            
+            // Keep server alive
             while (true) {
                 Thread.sleep(1000);
             }
