@@ -105,11 +105,13 @@ BackupServer 2 (or 3) is promoted to primary automatically.
 Clients reconnect and continue sending requests successfully.
 
 3.Simulate Backup Crash:
+
 Stop a backup server manually or with kill command.
 Monitor continues receiving primary heartbeats.
 No failover occurs; primary continues serving clients normally.
 
 4.Simultaneous Failures:
+
 Stop both the primary and all backups.
 Monitor detects no alive backup servers and logs:
 ```bash
