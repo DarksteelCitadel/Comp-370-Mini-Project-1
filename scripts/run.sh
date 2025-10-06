@@ -13,7 +13,7 @@ fi
 
 # Function to open new Terminal tab and run command in current directory
 open_tab() {
-  local cmd=$1
+  local cmd="$1"
   osascript <<EOF
 tell application "Terminal"
   activate
