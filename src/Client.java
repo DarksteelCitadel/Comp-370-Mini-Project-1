@@ -4,42 +4,29 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-
 public class Client {
-    private String host; // the server's address
-    private int port;    // the port number the server is listening on
+    private String host;
+    private int port;
 
-    
-
-    
-    public Client(String host, int port) { // When we make a Client, we give it a host (IP) and a port
+    public Client(String host, int port) {
         this.host = host;
         this.port = port;
     }
 
-    
-    public void sendRequest(String request) { // This method lets the client send a request to the server
+    // Now returns the server response or throws an IOException
+    public String sendRequest(String request) throws IOException {
         try (
-           
-            Socket socket = new Socket(host, port);  // Open a socket to the server
-
-          
-            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);  // Send data to the server
-
-            
-            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream())) // Read data from the server
+            Socket socket = new Socket(host, port);
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))
         ) {
-            
-            out.println(request); // Send the request text to the server
-
-            
-            String response = in.readLine(); // Wait and read the response from the server
-            System.out.println("Client received: " + response + "\n"); // Print the server's response
-
+            out.println(request); // send request
+            String response = in.readLine(); // read response
+            return response;
         } catch (IOException e) {
-            
-            System.out.println("Failed to connect to server at " + host + ":" + port + ". Trying to reconnect..."); // If the connection fails, print this message
+            throw new IOException("Failed to connect to server at " + host + ":" + port, e);
         }
     }
 }
+
 
