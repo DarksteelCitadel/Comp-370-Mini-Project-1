@@ -1,20 +1,18 @@
 #!/bin/bash
 PID_FILE="scripts/.pids"
 
-PRIMARY_PID=$(grep "PrimaryServer" $PID_FILE | cut -d':' -f2)
+PRIMARY_PID=$(head -n 1 $PID_FILE) # first line is PrimaryServer
 
 if [ -z "$PRIMARY_PID" ]; then
-    echo "Primary server is not running."
+    echo "Primary server PID not found."
     exit 1
 fi
 
-echo "Found PrimaryServer with PID: $PRIMARY_PID"
-
 echo "Simulating heartbeat delay..."
-kill -STOP $PRIMARY_PID   # Pause process
-sleep 5                   # Adjust delay if needed
-kill -CONT $PRIMARY_PID   # Resume process
+kill -STOP $PRIMARY_PID
+sleep 5
+kill -CONT $PRIMARY_PID
+echo "Primary server heartbeat resumed."
 
-echo "PrimaryServer heartbeat resumed."
 
 
