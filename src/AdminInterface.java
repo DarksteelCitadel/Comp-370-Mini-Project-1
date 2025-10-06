@@ -1,5 +1,6 @@
 import java.util.Scanner;
 
+
 public class AdminInterface {
     private final Monitor monitor;
 
@@ -29,5 +30,11 @@ public class AdminInterface {
                     System.out.println("Unknown command. Commands: status, failover, exit");
             }
         }
+    }
+
+    public static void main(String[] args) {
+        Monitor monitor = new Monitor();
+        AdminInterface admin = new AdminInterface(monitor);
+        admin.start();
     }
 }
