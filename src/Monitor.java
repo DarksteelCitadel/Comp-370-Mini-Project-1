@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.util.*;
 
 public class Monitor {
+
     private List<ServerProcess> servers = new ArrayList<>();
     private int timeoutThresholdMs = 5000;
     private Map<Integer, Long> heartbeatTimestamps = new HashMap<>();
@@ -126,5 +127,30 @@ public class Monitor {
             Logger.log("Server " + server.id + ": " + status);
         }
     }
+    public static void main(String[] args) {
+        int monitorPort = 7100;
+        if (args.length > 0) {
+            try {
+                monitorPort = Integer.parseInt(args[0]);
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid port argument, using default 7100");
+            }
+        }
+        Monitor monitor = new Monitor();
+        monitor.startMonitorService(monitorPort);
+        System.out.println("Monitor service started on port " + monitorPort);
+
+        // Keep the program running
+        while (true) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                break;
+            }
+        }
+    }
 }
+
+
+
 
