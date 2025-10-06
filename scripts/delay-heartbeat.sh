@@ -1,20 +1,28 @@
 #!/bin/bash
 # delay-heartbeat.sh — simulate delayed heartbeats for PrimaryServer
 
-# Find the PID of the PrimaryServer using ps (works even across tabs)
-PRIMARY_PID=$(ps aux | grep "[j]ava -cp out PrimaryServer" | awk '{print $2}' | head -n 1)
+PID_FILE="scripts/.pids"
 
-if [ -z "$PRIMARY_PID" ]; then
-    echo "PrimaryServer is not running."
-    exit 1
+if [ ! -f "$PID_FILE" ]; then
+  echo "PID file not found. Run run.sh first."
+  exit 1
 fi
 
-echo "Found PrimaryServer with PID: $PRIMARY_PID"
+PRIMARY_PID=$(grep "PrimaryServer:" "$PID_FILE" | cut -d':' -f2)
 
-# Simulate heartbeat delay by stopping and resuming
-echo "Simulating heartbeat delay..."
-kill -STOP $PRIMARY_PID
+if [ -z "$PRIMARY_PID" ]; then
+  echo "PrimaryServer PID not found in $PID_FILE"
+  exit 1
+fi
+
+if ! ps -p "$PRIMARY_PID" > /dev/null; then
+  echo "PrimaryServer (PID $PRIMARY_PID) is not running."
+  exit 1
+fi
+
+echo "Simulating heartbeat delay for PrimaryServer (PID $PRIMARY_PID)..."
+kill -STOP "$PRIMARY_PID"
 sleep 5
-kill -CONT $PRIMARY_PID
+kill -CONT "$PRIMARY_PID"
+echo "Heartbeat delay complete."
 
-echo "PrimaryServer heartbeat resumed."
