@@ -1,4 +1,6 @@
 #!/bin/bash
-echo "Killing the Primary Server (ID 1)..."
-# This works if the original PrimaryServer thread is still running
-pkill -f "PrimaryServer 1 6000"
+echo "Simulating Primary Server failure..."
+# Since Main stops Primary automatically after a delay, this is optional
+# You can still manually kill the Main process if needed
+pkill -f "Main"
+echo "Primary (and whole system) stopped."
