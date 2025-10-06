@@ -87,6 +87,36 @@ public class BackupServer extends ServerProcess {
     public void sendHeartbeat() {}
     @Override
     public void receiveHeartbeat() {}
+
+    // -------------------
+    // Main method to run BackupServer independently
+    // -------------------
+    public static void main(String[] args) {
+        int id = 2;           // default server id
+        int port = 6001;      // default port
+
+        // Parse command-line arguments if provided
+        if (args.length >= 2) {
+            try {
+                id = Integer.parseInt(args[0]);
+                port = Integer.parseInt(args[1]);
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid arguments, using defaults id=2 port=6001");
+            }
+        }
+
+        BackupServer server = new BackupServer(id, port);
+        server.start();
+
+        // Keep the main thread alive
+        while (true) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                break;
+            }
+        }
+    }
 }
 
 
