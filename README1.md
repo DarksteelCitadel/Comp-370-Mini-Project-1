@@ -42,34 +42,44 @@ It also includes an **admin interface** for manual commands, log inspection, and
 | Server 3 (Backup)  | 6002 |
 
 ---
-## Running the code
-Open a terminal, navigate to the project folder:
+## Running the system
+Running the System
+
+1.Open a terminal, navigate to the project folder:
+```bash
 cd ~/Comp-370-Mini-Project-1
-
-Make scripts executable:
+```
+2. Make all scripts executable:
+```bash
 chmod +x scripts/*.sh
-
-Run all components:
+```
+3. Start the system:
+```bash
 ./scripts/run.sh
-This will start:
-Monitor (port 7100)
-PrimaryServer (Server 1, port 6000)
-BackupServer 2 (port 6001)
-BackupServer 3 (port 6002)
-AdminInterface (CLI for commands)
+```
+This will start: Monitor (port 7100), PrimaryServer (Server 1, port 6000), BackupServer 2 (port 6001), BackupServer 3 (port 6002), AdminInterface (CLI)
+
 In this terminal, you will mostly see log messages from Monitor and servers.
 
-Open a new terminal window for AdminInterface:
+4. Open a new terminal window for AdminInterface:
+```bash
 cd ~/Comp-370-Mini-Project-1
 java -cp out AdminInterface
-
-Open another terminal to simulate delays in heartbeat (for testing failover timing):
+```
+5. Open another terminal to simulate delays in heartbeat:
+```bash
 cd ~/Comp-370-Mini-Project-1
-./scripts/delay-heartbeat.sh 2 (Replace 2 with 3 to delay Backup Server 3 instead.)
+./scripts/delay-heartbeat.sh 2
+```
+This delays Backup Server 2’s heartbeat for 5 seconds, then resumes automatically.
+Replace 2 with 3 to delay Backup Server 3 instead.
 
-Open yet another terminal to simulate a primary server failure:
+6. Open another terminal to simulate a primary server failure:
+```bash
 cd ~/Comp-370-Mini-Project-1
 ./scripts/kill-primary.sh
+```
+This kills the current primary server. 
 
 ## Scripts
 
