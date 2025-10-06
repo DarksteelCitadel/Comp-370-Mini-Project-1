@@ -1,12 +1,10 @@
 #!/bin/bash
 
-# Create output folder
-mkdir -p out
-
-# Compile all Java files
+# Compile Java files
 echo "Compiling Java files..."
+mkdir -p out
 javac src/*.java -d out
 
-# Run the whole system from Main.java
-echo "Starting system (Monitor, PrimaryServer, BackupServers, AdminInterface)..."
+# Run the Main program
+echo "Starting the entire system via Main..."
 java -cp out Main
