@@ -126,7 +126,8 @@ Monitor continues receiving heartbeats from the primary.
 No false failover is triggered.
 Clients still receive valid responses from the primary server.
 
-6. System Recovery:
+6.System Recovery:
+
 Restart stopped servers manually.
 Monitor re-registers the servers, and heartbeats resume.
 Clients can reconnect to the primary and continue sending requests successfully.
