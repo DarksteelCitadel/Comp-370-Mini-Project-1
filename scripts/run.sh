@@ -23,7 +23,6 @@ tell application "Terminal"
 end tell
 EOF
 }
-
 echo "Starting Monitor..."
 open_tab "java -cp out Monitor"
 
