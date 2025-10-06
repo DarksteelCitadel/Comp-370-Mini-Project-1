@@ -19,7 +19,7 @@ It also includes an **admin interface** for manual commands, log inspection, and
 
 - **BackupServer** (`BackupServer.java`)  
   - Example: `java BackupServer 2`  
-  - Listens on **port 9002** (Server 2), **6001** (Server 3).  
+  - Listens on **port 6001** (Server 2).  
   - Sends heartbeats, can be promoted to primary.
 
 - **AdminInterface** (`AdminInterface.java`)  
