@@ -17,6 +17,10 @@ public class Main {
         Monitor monitor = new Monitor();
         monitor.startMonitorService(7100);
         
+new Thread(() -> {
+            AdminInterface admin = new AdminInterface(monitor);
+            admin.start();
+        }).start();
 
         monitor.registerServer(primary);
         monitor.registerServer(backup);
