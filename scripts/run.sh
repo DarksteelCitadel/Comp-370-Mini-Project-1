@@ -1,45 +1,36 @@
 #!/bin/bash
+# Make scripts executable
+chmod +x scripts/*.sh
+mkdir -p scripts/.pids
 
-# Compile Java files
-echo "Compiling Java files..."
+# Compile
 javac src/*.java -d out
-mkdir -p out
-
-PID_FILE="scripts/.pids"
-> $PID_FILE
 
 # Start Monitor
-echo "Starting Monitor..."
-java -cp out Monitor &
-echo $! >> $PID_FILE
+java -cp out Monitor 7100 &
+echo $! > scripts/.pids/monitor.pid
 sleep 1
 
 # Start Primary Server
-echo "Starting Primary Server..."
 java -cp out PrimaryServer 1 6000 &
-echo $! >> $PID_FILE
+echo $! > scripts/.pids/primary.pid
 sleep 1
 
-# Start Backup Server 2
-echo "Starting Backup Server 2..."
+# Start Backup Servers
 java -cp out BackupServer 2 6001 &
-echo $! >> $PID_FILE
+echo $! > scripts/.pids/backup2.pid
 sleep 1
 
-# Start Backup Server 3
-echo "Starting Backup Server 3..."
 java -cp out BackupServer 3 6002 &
-echo $! >> $PID_FILE
+echo $! > scripts/.pids/backup3.pid
 sleep 1
 
 # Start Admin Interface
-echo "Starting Admin Interface..."
 java -cp out AdminInterface &
-echo $! >> $PID_FILE
+echo $! > scripts/.pids/admin.pid
 sleep 1
 
 echo "All components started!"
-
 
 
 
