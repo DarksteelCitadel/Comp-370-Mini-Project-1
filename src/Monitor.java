@@ -31,10 +31,32 @@ public class Monitor {
                     BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                     PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
                     String request = in.readLine();
-        
+
                     if (request == null) continue;
-        
-                    if (request.startsWith("HEARTBEAT")) {
+
+                    // ---------------------------
+                    // Added: handle registration
+                    // ---------------------------
+                    if (request.startsWith("REGISTER")) {
+                        // Format: REGISTER <id> <port> <type>
+                        String[] parts = request.split(" ");
+                        int serverId = Integer.parseInt(parts[1]);
+                        int serverPort = Integer.parseInt(parts[2]);
+                        String type = parts[3];
+
+                        ServerProcess server;
+                        if ("PRIMARY".equalsIgnoreCase(type)) {
+                            server = new PrimaryServer(serverId, serverPort);
+                        } else {
+                            server = new BackupServer(serverId, serverPort);
+                        }
+
+                        registerServer(server);
+                        out.println("Registered server " + serverId);
+                    } 
+                    // ---------------------------
+
+                    else if (request.startsWith("HEARTBEAT")) {
                         int serverId = Integer.parseInt(request.split(" ")[1]);
                         recordHeartbeat(serverId);
                     } else if ("STATUS".equalsIgnoreCase(request)) {
@@ -55,14 +77,14 @@ public class Monitor {
                         for (ServerProcess server : servers) if (server.id == currentPrimaryId) primary = server;
                         out.println(primary != null ? "localhost:" + primary.port : "NONE");
                     }
-        
+
                     clientSocket.close();
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }).start(); }
-        
+        }).start();
+    }
 
     public synchronized void recordHeartbeat(int serverId) {
         heartbeatTimestamps.put(serverId, System.currentTimeMillis());
@@ -141,6 +163,7 @@ public class Monitor {
             Logger.log("Server " + server.id + ": " + status);
         }
     }
+
     public static void main(String[] args) {
         int monitorPort = 7100;
         if (args.length > 0) {
@@ -154,7 +177,6 @@ public class Monitor {
         monitor.startMonitorService(monitorPort);
         System.out.println("Monitor service started on port " + monitorPort);
 
-        // Keep the program running
         while (true) {
             try {
                 Thread.sleep(1000);
