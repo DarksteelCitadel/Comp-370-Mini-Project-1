@@ -1,5 +1,4 @@
 #!/bin/bash
-echo "Simulating heartbeat delay for 10 seconds..."
-# Adjust HeartbeatSender in code if you want a real delay
-sleep 10
-echo "[SIMULATION] Heartbeat delays triggered."
+echo "Simulating heartbeat delay..."
+# You could instruct testers to adjust HeartbeatSender in code
+echo "[SIMULATION] Heartbeat delays triggered (adjust HeartbeatSender in code if needed)."
