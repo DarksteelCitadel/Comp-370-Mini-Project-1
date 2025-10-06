@@ -26,9 +26,7 @@ echo $! > scripts/.pids/backup3.pid
 sleep 1
 
 # Start Admin Interface
-java -cp out AdminInterface &
-echo $! > scripts/.pids/admin.pid
-sleep 1
+java -cp out AdminInterface
 
 echo "All components started!"
 
