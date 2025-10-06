@@ -4,16 +4,19 @@ public class PrimaryServer extends ServerProcess {
         super(id, port);
     }
 
+    // Log when heartbeat is sent
     @Override
     public void sendHeartbeat() {
         Logger.log("PrimaryServer " + id + " sending heartbeat.");
     }
 
+    // Log when heartbeat is received
     @Override
     public void receiveHeartbeat() {
         Logger.log("PrimaryServer " + id + " received heartbeat.");
     }
 
+    // Handle client request and log event
     public String handleRequest(String request) {
         Logger.log("PrimaryServer " + id + " handling request: " + request);
         return "Response from PrimaryServer " + id + ": " + request;
@@ -33,7 +36,7 @@ public class PrimaryServer extends ServerProcess {
         PrimaryServer server = new PrimaryServer(id, port);
         try {
             server.start();
-            // Keep running
+            // Keep running indefinitely
             while (true) {
                 Thread.sleep(1000);
             }
