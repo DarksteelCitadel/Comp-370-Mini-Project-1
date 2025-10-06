@@ -1,12 +1,14 @@
 #!/bin/bash
-# Make sure all scripts are executable
+# Top-level script to start monitor, servers, and admin client
+
+# Make scripts executable
 chmod +x *.sh
 
 # Compile Java files
 echo "Compiling Java files..."
 javac -d out src/*.java
 
-# Function to open new terminal tabs and run a command
+# Function to open a new Terminal tab and run a command
 open_tab() {
   osascript <<EOF
 tell application "Terminal"
@@ -29,6 +31,12 @@ open_tab "cd $(pwd) && java -cp out Main backup1"
 
 echo "Starting Backup Server 2..."
 open_tab "cd $(pwd) && java -cp out Main backup2"
+
+echo "Starting Admin Interface..."
+open_tab "cd $(pwd) && java -cp out Main admin"
+
+echo "All components started!"
+
 
 echo "Starting Admin Interface..."
 open_tab "cd $(pwd) && java -cp out Main admin"
