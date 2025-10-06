@@ -44,3 +44,4 @@ public abstract class ServerProcess {
     public abstract void sendHeartbeat();
     public abstract void receiveHeartbeat();
 }
+
