@@ -3,55 +3,45 @@
 # Compile Java files
 echo "Compiling Java files..."
 javac src/*.java -d out
-
 mkdir -p out
-mkdir -p scripts
 
-# File to store PIDs
 PID_FILE="scripts/.pids"
-> $PID_FILE  # Clear existing file
+> $PID_FILE
 
-open_tab() {
-  local cmd="$1"
-  osascript <<EOF
-tell application "Terminal"
-  activate
-  tell application "System Events" to keystroke "t" using command down
-  delay 0.5
-  do script "cd '$(pwd)'; $cmd" in front window
-end tell
-EOF
-}
-
-start_process() {
-  local cmd="$1"
-  local name="$2"
-  
-  # Start process in background and get PID
-  $cmd &
-  PID=$!
-  
-  # Save PID to file
-  echo "$name:$PID" >> $PID_FILE
-  echo "Started $name with PID $PID"
-}
-
+# Start Monitor
 echo "Starting Monitor..."
-start_process "java -cp out Monitor" "Monitor"
+java -cp out Monitor &
+echo $! >> $PID_FILE
+sleep 1
 
+# Start Primary Server
 echo "Starting Primary Server..."
-start_process "java -cp out PrimaryServer 1 6000" "PrimaryServer"
+java -cp out PrimaryServer 1 6000 &
+echo $! >> $PID_FILE
+sleep 1
 
+# Start Backup Server 2
 echo "Starting Backup Server 2..."
-start_process "java -cp out BackupServer 2 6001" "BackupServer2"
+java -cp out BackupServer 2 6001 &
+echo $! >> $PID_FILE
+sleep 1
 
+# Start Backup Server 3
 echo "Starting Backup Server 3..."
-start_process "java -cp out BackupServer 3 6002" "BackupServer3"
+java -cp out BackupServer 3 6002 &
+echo $! >> $PID_FILE
+sleep 1
 
+# Start Admin Interface
 echo "Starting Admin Interface..."
-start_process "java -cp out AdminInterface" "AdminInterface"
+java -cp out AdminInterface &
+echo $! >> $PID_FILE
+sleep 1
 
 echo "All components started!"
+
+
+
 
 
 
