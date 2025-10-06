@@ -13,13 +13,11 @@ It also includes an **admin interface** for manual commands, log inspection, and
   - Tracks all servers, listens for heartbeats, and promotes backups when the primary fails.  
   - Responds to admin commands (e.g., `status`, `failover`).
 
-- **PrimaryServer** (`PrimaryServer.java`)  
-  - Example: `java PrimaryServer 1 6000`  
+- **PrimaryServer** (`PrimaryServer.java`)    
   - Listens on **port 6000**.  
   - Handles client requests and heartbeats.
 
-- **BackupServer** (`BackupServer.java`)  
-  - Example: `java BackupServer 2 6001`  
+- **BackupServer** (`BackupServer.java`)    
   - Listens on **port 6001 (Server 2)** or **6002 (Server 3)**.  
   - Sends heartbeats and can be promoted to primary on failover.
 
