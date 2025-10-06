@@ -1,14 +1,13 @@
 #!/bin/bash
-# kill-primary.sh - kills the JVM hosting the current PrimaryServer
+# kill-primary.sh — kill the current PrimaryServer JVM
 
-# Find the PID of the running PrimaryServer
-PRIMARY_PID=$(jps -l | grep -i "PrimaryServer" | awk '{print $1}')
+PRIMARY_PID=$(ps aux | grep "[j]ava -cp out PrimaryServer" | awk '{print $2}' | head -n 1)
 
 if [ -z "$PRIMARY_PID" ]; then
-    echo "Primary server is not running."
+    echo "PrimaryServer is not running."
     exit 1
 fi
 
-# Kill the primary server
 kill -9 $PRIMARY_PID
-echo "Primary server with PID $PRIMARY_PID killed."
+echo "PrimaryServer with PID $PRIMARY_PID killed."
+
