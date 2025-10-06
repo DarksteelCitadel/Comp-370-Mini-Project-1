@@ -46,12 +46,23 @@ public class BackupServer extends ServerProcess {
             new Thread(() -> {
                 try {
                     while (true) {
+                        // Check if a delay file exists (scripts/delay_<id>)
+                        File delayFile = new File("scripts/delay_" + id);
+                        if (delayFile.exists()) {
+                            // Wait while delay file exists
+                            while (delayFile.exists()) {
+                                Thread.sleep(500);
+                            }
+                        }
+
+                        // Send heartbeat
                         try (Socket monitorSocket = new Socket("localhost", 7100);
                              PrintWriter out = new PrintWriter(monitorSocket.getOutputStream(), true)) {
                             out.println("HEARTBEAT " + id);
                         } catch (Exception e) {
                             System.out.println("BackupServer " + id + " failed to send heartbeat, retrying...");
                         }
+
                         Thread.sleep(1000);
                     }
                 } catch (InterruptedException ignored) {}
