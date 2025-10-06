@@ -1,6 +1,4 @@
 #!/bin/bash
-
 echo "Killing the Primary Server (ID 1)..."
-
-# This finds the Java process running Main that contains PrimaryServer and kills it
+# This works if the original PrimaryServer thread is still running
 pkill -f "PrimaryServer 1 6000"
