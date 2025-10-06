@@ -96,7 +96,7 @@ java -cp out AdminInterface
 ```
 Commands: status, failover, exit.
 
-3. Simulate Primary Crash:
+2. Simulate Primary Crash:
 ```bash
 ./scripts/kill-primary.sh
 ```
